@@ -1,0 +1,173 @@
+var oX = getWidth()/(3/2);
+var oY = getHeight()/2;
+
+var XWIDTH = 3;
+var YHEIGHT = XWIDTH* getHeight() / getWidth();
+var ySpacing = getHeight() / YHEIGHT;
+var xSpacing = getWidth() / XWIDTH;
+
+var operationCounter = 0;
+var zoomBox = [-2,2,-3,3,.007,.007];
+
+function start () {
+
+screenTest(zoomBox);
+
+
+    
+}  
+
+// The mouseClick moves the origin to the current location
+function setOrigin(e) {
+    removeAll();
+    
+    oX = e.getX();
+    oY = e.getY();
+    
+ 
+    
+    screenTest();
+    
+}
+
+function screenTest(zoom) {
+    for (var i = zoom[0]; i < zoom[1]; i += zoom[4]){
+        for (var k = zoom[2]; k < zoom[3]; k += zoom[5]){
+            var test = mandelTest([i,k]);
+            
+            if(test[0]){
+                plotPoint([i,k],0);
+            }else{
+                plotPoint([i,k],test[1]);
+            }
+        }
+    }
+    
+    
+    
+}
+
+
+
+// This function returns a true or false value depending
+// on whether the point is in the Mandelbrot Set or not
+function mandelTest(point) {
+    var current = [0,0];
+    var counter = 0;
+    var absValue = 0;
+    var decision = false;
+    var testList = [0];
+    var countDown = 0;
+    var index = 1;
+    
+    var test;
+    
+    while(index < 50) {
+        test = complexAdd(point,complexMultiply(current,current));
+        absValue = complexABS(test);
+        
+        
+        if (absValue <= 1) {
+            countDown++;
+        }else{
+            counter++;
+        }
+        
+        current = test;
+        
+        if (countDown > 10) {
+            decision = true;
+            break;
+        }
+        if (absValue > 50) {
+            break;
+        }
+        
+        index++;
+        
+    }
+   
+  
+   var pointType = [decision,counter];
+   return pointType; 
+}
+
+
+
+// This function plots a "point" at the given
+// coordinates of the form [x,y] and uses (oX,oY)
+// as the origin
+function plotPoint(center,counter) {
+    var color = chooseColor(counter);
+    var radius = XWIDTH/2;
+    var pointCenter = coordinateMap(center);    
+    var point = new Circle(radius);
+    point.setPosition(pointCenter[0],pointCenter[1]);
+    
+    if (counter == 0 ){
+        
+        add(point);
+    }else{
+       
+       point.setColor(color);
+       add(point);
+    }
+    
+}
+
+function chooseColor(count) {
+    var color;
+   
+    if (count < 5) {
+       color = Color.BLUE
+    }
+    if (count >= 5 && count <10) {
+        color = Color.RED;
+    }
+    if (count >=10 && count <15) {
+        color = Color.YELLOW;
+    }
+    if (count >= 15){
+        color = Color.WHITE;
+    }
+    
+    return color;
+}
+
+// This function expects two numbers in the form 
+// [a,b] which represents the complex number a + bi
+// The function multiplies the numbers together and
+// returns the complex product [p,q]
+function complexMultiply(num1, num2) {
+    var resultA = num1[0]*num2[0] - num1[1]*num2[1];
+    var resultB = num1[0]*num2[1] + num1[1]*num2[0];
+    
+    var result = [resultA,resultB];
+    
+    return result;
+    
+}
+
+// This function returns the absolute value of a 
+// of a complex number a + bi in the form [a,b]
+function complexABS(num) {
+    
+    return Math.sqrt(num[0]*num[0] + num[1]*num[1]);
+}
+
+// This function adds two complex numbers together
+function complexAdd(num1,num2) {
+    var sum = [num1[0]+num2[0],num1[1]+num2[1]];
+    return sum;
+    
+}
+
+// Maps user defined coordinates into codeHS coordinates
+// input should be of the form [x,y] and will return such
+function coordinateMap(input) {
+    var realX = oX + input[0] * xSpacing;
+    var realY = oY - input[1] * ySpacing;
+    var realCoordinates = [realX,realY];
+    
+    return realCoordinates;
+}
